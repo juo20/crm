@@ -9,9 +9,8 @@
 		<div class="card card-body">
 			<h5>Customer: {{ customer.name }}</h5>
 			<hr>
-			<a class="btn btn-outline-info  btn-sm btn-block" href="{% url 'update_customer' customer.id %}">Update Customer</a>
-			<a class="btn btn-outline-danger  btn-sm btn-block" href="{% url 'delete_customer' customer.id %}" onclick="return confirm('Are you sure?')">Delete Customer</a>
-
+			<a class="btn btn-outline-info btn-sm btn-block" href="{% url 'update_customer' customer.id %}">Update Customer</a>
+			<a class="btn btn btn-outline-info btn-sm btn-block" href="{% url 'create_order' customer.id %}">Place Order</a>
 		</div>
 	</div>
 
@@ -39,8 +38,9 @@
 	<div class="col">
 		<div class="card card-body">
 			<form method="get">
+				{{ myFilter.form }}
 
-		    <button class="btn btn-primary" type="submit">Search</button>
+				<button class="btn btn-primary" type="submit">Search</button>
 		  </form>
 		</div>
 	</div>
