@@ -15,4 +15,5 @@ urlpatterns = [
     path('delete_product/<str:prod_id>/', views.deleteProduct, name='delete_product'),
     path('login/', views.userLogin, name='login'),
     path('register/', views.register, name='register'),
+    path('logout/', views.userLogout, name='logout'),
 ]

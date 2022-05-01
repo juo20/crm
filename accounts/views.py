@@ -3,12 +3,13 @@ from .models import Product, Order, Customer
 from . import forms
 from django.forms import inlineformset_factory
 from .filters import OrderFilter
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
 
-# Create your views here.
+@login_required(login_url='login')
 def home(request):
     orders = Order.objects.all()
     customers = Customer.objects.all()
@@ -31,6 +32,7 @@ def home(request):
     return render(request, 'accounts/home.html', context)
 
 
+@login_required(login_url='login')
 def customers(request, cust_id):
     customer = Customer.objects.get(id=cust_id)
     orders = customer.order_set.all()
@@ -49,12 +51,14 @@ def customers(request, cust_id):
     return render(request, 'accounts/customers.html', context)
 
 
+@login_required(login_url='login')
 def products(request):
     products_all = Product.objects.all()
 
     return render(request, 'accounts/products.html', {'products': products_all})
 
 
+@login_required(login_url='login')
 def createOrder(request, cust_id):
 
     OrderFormSet = inlineformset_factory(Customer, Order, fields=('product', 'status'), max_num=3)
@@ -73,6 +77,7 @@ def createOrder(request, cust_id):
     return render(request, 'accounts/order_form.html', context)
 
 
+@login_required(login_url='login')
 def updateOrder(request, order_id):
 
     order = Order.objects.get(id=order_id)
@@ -90,6 +95,7 @@ def updateOrder(request, order_id):
     return render(request, 'accounts/update_order_form.html', context)
 
 
+@login_required(login_url='login')
 def deleteOrder(request, order_id):
 
     Order.objects.filter(id=order_id).delete()
@@ -97,6 +103,7 @@ def deleteOrder(request, order_id):
     return redirect('/')
 
 
+@login_required(login_url='login')
 def createCustomer(request):
 
     form = forms.CustomerForm()
@@ -113,6 +120,7 @@ def createCustomer(request):
     return render(request, 'accounts/customer_form.html', context)
 
 
+@login_required(login_url='login')
 def updateCustomer(request, cust_id):
 
     customer = Customer.objects.get(id=cust_id)
@@ -130,6 +138,7 @@ def updateCustomer(request, cust_id):
     return render(request, 'accounts/customer_form.html', context)
 
 
+@login_required(login_url='login')
 def deleteCustomer(request, cust_id):
 
     Customer.objects.filter(id=cust_id).delete()
@@ -137,6 +146,7 @@ def deleteCustomer(request, cust_id):
     return redirect('/')
 
 
+@login_required(login_url='login')
 def updateProduct(request, prod_id):
 
     product = Product.objects.get(id=prod_id)
@@ -154,6 +164,7 @@ def updateProduct(request, prod_id):
     return render(request, 'accounts/update_product_form.html', context)
 
 
+@login_required(login_url='login')
 def deleteProduct(request, prod_id):
 
     Product.objects.filter(id=prod_id).delete()
@@ -162,6 +173,8 @@ def deleteProduct(request, prod_id):
 
 
 def userLogin(request):
+    if request.user.is_authenticated:
+        return redirect('/')
 
     context = {}
 
@@ -177,27 +190,32 @@ def userLogin(request):
             if user is not None:
                 login(request, user)
                 return redirect('/')
-            return HttpResponse("Failed login", status=401)
-        else:
-            return HttpResponse("Invalid Form", status=403)
+
     context['form'] = form
 
     return render(request, 'accounts/login.html', context)
 
 
+def userLogout(request):
+    logout(request)
+    messages.add_message(request, messages.SUCCESS, 'Successfully logged out')
+    return redirect('/login')
+
+
 def register(request):
+    if request.user.is_authenticated:
+        return redirect('/')
+
     context = {}
 
-    form = UserCreationForm()
+    form = forms.CreateUserForm()
 
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = forms.CreateUserForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password1')
-            user = User.objects.create_user(username, username, password)
-            user.save()
-            return redirect('/')
+            form.save()
+            messages.add_message(request, messages.SUCCESS, 'Successfully created account')
+            return redirect('/login')
 
     context['form'] = form
 
